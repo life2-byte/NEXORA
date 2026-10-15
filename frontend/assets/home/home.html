@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Home</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    height: 100%;
+    background: linear-gradient(135deg, #0b1220, #132033);
+  }
+
+  body {
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: "Segoe UI", "Inter", "Ubuntu", sans-serif;
+    color: #e6eaf2;
+  }
+
+  /* Image layer: hamesha rehti hai, video na ho to yahi dikhti hai */
+  #bg-image {
+    position: fixed;
+    inset: 0;
+    background-image: url("bg.jpeg");
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+  }
+
+  /* Video layer: bg.webm mile to image ke upar chalti hai */
+  #bg-video {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 18, 32, 0.55);
+    z-index: 2;
+  }
+
+  .center {
+    position: relative;
+    z-index: 3;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 0 24px;
+  }
+
+  h1 {
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  h1 span { color: #38bdf8; }
+
+  .tagline {
+    margin-top: -18px;
+    color: #9fb0cc;
+    font-size: 15px;
+  }
+
+  form { width: 100%; max-width: 640px; }
+
+  input {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 16px;
+    color: #e6eaf2;
+    background: rgba(17, 26, 43, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 28px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  input::placeholder { color: #8b98b0; }
+
+  input:focus {
+    border-color: #38bdf8;
+    background: rgba(17, 26, 43, 0.75);
+  }
+</style>
+</head>
+<body>
+  <div id="bg-image"></div>
+
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source id="bg-video-src" src="bg.webm" type="video/webm">
+  </video>
+
+  <div class="overlay"></div>
+
+  <div class="center">
+    <h1>Agentic <span>Browser</span></h1>
+    <p class="tagline">AI-Powered Navigation</p>
+    <form id="search-form">
+      <input id="q" type="text" placeholder="Search / URL / Ask AI" autocomplete="off" autofocus>
+    </form>
+  </div>
+
+<script>
+  const SEARCH_URL = "https://duckduckgo.com/?q=";
+
+  function resolve(text) {
+    text = text.trim();
+    if (!text) return null;
+    if (/^(https?:\/\/|file:\/\/)/i.test(text)) return text;
+    if (text.includes(" ") || !text.includes(".")) {
+      return SEARCH_URL + encodeURIComponent(text);
+    }
+    return "https://" + text;
+  }
+
+  document.getElementById("search-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const url = resolve(document.getElementById("q").value);
+    if (url) window.location.href = url;
+  });
+
+  const video = document.getElementById("bg-video");
+  const videoSrc = document.getElementById("bg-video-src");
+
+  // bg.webm na mile to video hide, image dikhti rahe
+  videoSrc.addEventListener("error", () => {
+    video.style.display = "none";
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (video.style.display === "none") return;
+    if (document.hidden) video.pause();
+    else video.play();
+  });
+</script>
+</body>
+</html>
