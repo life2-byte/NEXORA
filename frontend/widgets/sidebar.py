@@ -1,9 +1,10 @@
 from pathlib import Path
 
 from PyQt6.QtCore import QEasingCurve, Qt, QTimer, QVariantAnimation, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor, QLinearGradient, QPainter, QPainterPath, QPixmap
+from PyQt6.QtGui import QBrush, QColor, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -18,7 +19,7 @@ ASSETS = Path(__file__).resolve().parents[1] / "assets" / "sidebar"
 COLLAPSED_W = 56
 EXPANDED_W = 248
 
-BRAND_NAME = "Agentic Browser"
+BRAND_NAME = "Nexora"
 TAGLINE = "Not just a browser.\nAn agent that gets things done."
 
 SURFACE = "#0e1626"
@@ -26,10 +27,18 @@ BORDER = "#1f2d45"
 ICON_MUTED = "#9aa7c0"
 ICON_ACTIVE = "#38bdf8"
 
-# (key, label, icon)
-ITEMS = [
+# (key, label, icon): click pe kaam hota hai, screen nahi badalti
+ACTIONS = [
+    ("new_tab", "New tab", "plus"),
+    ("new_window", "New window", "window"),
+    ("new_window_noai", "New window (no AI)", "shield"),
+]
+
+# (key, label, icon): click pe ye screen khulti hai
+PAGES = [
     ("home", "Home", "home"),
     ("browse", "Browse", "globe"),
+    ("history", "History", "clock"),
     ("agents", "Agents", "cpu"),
     ("tasks", "Tasks", "check-square"),
     ("memory", "Memory", "database"),
@@ -62,6 +71,7 @@ def _rounded_logo(size: int, radius: int) -> QPixmap:
     painter.setClipPath(path)
     painter.fillRect(0, 0, size, size, QColor("#0a1226"))
 
+    drawn = False
     logo_path = _find("logo", ("png", "webp", "jpg", "jpeg"))
     if logo_path:
         src = QPixmap(str(logo_path))
@@ -76,17 +86,31 @@ def _rounded_logo(size: int, radius: int) -> QPixmap:
             )
             src.setDevicePixelRatio(dpr)
             painter.drawPixmap(0, 0, src)
+            drawn = True
+
+    if not drawn:
+        print(f"[sidebar] logo file nahi mili: {ASSETS}/logo.png")
+        fallback = get_icon("agent", ICON_ACTIVE).pixmap(size * dpr // 2, size * dpr // 2)
+        fallback.setDevicePixelRatio(dpr)
+        painter.drawPixmap(size // 4, size // 4, fallback)
+
+    # halki border, taake tile kabhi rail mein gum na ho
+    painter.setClipping(False)
+    painter.setPen(QPen(QColor(56, 189, 248, 120), 1))
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.drawRoundedRect(0, 0, size - 1, size - 1, radius, radius)
+
     painter.end()
     return pix
 
 
 class SidebarItem(QPushButton):
-    def __init__(self, icon_name: str, text: str, parent=None):
+    def __init__(self, icon_name: str, text: str, checkable: bool = True, parent=None):
         super().__init__(parent)
         self.setObjectName("SidebarItem")
-        self.setCheckable(True)
+        self.setCheckable(checkable)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFixedHeight(44)
+        self.setFixedHeight(42)
         self.setToolTip(text)
         self._icon_name = icon_name
 
@@ -102,10 +126,15 @@ class SidebarItem(QPushButton):
         self.text_label.setObjectName("SidebarText")
         self.text_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
-        layout.addWidget(self.icon_label)
+        layout.addWidget(
+            self.icon_label,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         layout.addWidget(self.text_label, 1)
 
-        self.toggled.connect(lambda _: self._refresh_icon())
+        if checkable:
+            self.toggled.connect(lambda _: self._refresh_icon())
         self._refresh_icon()
 
     def _refresh_icon(self) -> None:
@@ -116,7 +145,8 @@ class SidebarItem(QPushButton):
 class Sidebar(QWidget):
     """Icons-only rail; mouse aane pe nebula image ke saath khulti hai (content ke upar float)."""
 
-    item_selected = pyqtSignal(str)
+    item_selected = pyqtSignal(str)    # screen badli (home, history, settings...)
+    action_triggered = pyqtSignal(str)  # new_tab, new_window, new_window_noai
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -179,14 +209,33 @@ class Sidebar(QWidget):
         logo.setPixmap(_rounded_logo(36, 10))
         name = QLabel(BRAND_NAME)
         name.setObjectName("BrandName")
-        brand_layout.addWidget(logo)
+        brand_layout.addWidget(
+            logo,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         brand_layout.addWidget(name, 1)
         self._text_widgets.append(name)
         layout.addWidget(brand)
 
+        # ---- actions (new tab / window) ----
+        for key, label, icon in ACTIONS:
+            item = SidebarItem(icon, label, checkable=False)
+            item.clicked.connect(lambda _, k=key: self._on_action_clicked(k))
+            self._text_widgets.append(item.text_label)
+            layout.addWidget(item)
+
+        layout.addSpacing(4)
+        sep = QFrame()
+        sep.setObjectName("SidebarSep")
+        sep.setFixedHeight(1)
+        layout.addWidget(sep)
+        layout.addSpacing(4)
+
+        # ---- pages ----
         self.group = QButtonGroup(self)
         self.group.setExclusive(True)
-        for key, label, icon in ITEMS:
+        for key, label, icon in PAGES:
             item = SidebarItem(icon, label)
             item.clicked.connect(lambda _, k=key: self._on_item_clicked(k))
             self.group.addButton(item)
@@ -229,6 +278,11 @@ class Sidebar(QWidget):
     # ---------- internals ----------
     def _on_item_clicked(self, key: str) -> None:
         self.item_selected.emit(key)
+        self._expand_timer.stop()
+        self.collapse()
+
+    def _on_action_clicked(self, key: str) -> None:
+        self.action_triggered.emit(key)
         self._expand_timer.stop()
         self.collapse()
 

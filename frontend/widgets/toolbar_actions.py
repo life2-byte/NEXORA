@@ -2,7 +2,9 @@ from PyQt6.QtCore import QSize, pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QMenu, QToolButton, QWidget
 
 from frontend.assets.icons import get_icon
+from frontend.core import profiles
 from frontend.styles.theme import COLORS
+from frontend.widgets.profile_menu import ProfileMenu, avatar_icon
 
 
 class ToolbarActions(QWidget):
@@ -11,6 +13,7 @@ class ToolbarActions(QWidget):
     bookmark_toggled = pyqtSignal(bool)
     downloads_clicked = pyqtSignal()
     settings_clicked = pyqtSignal()
+    profile_edited = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,22 +29,25 @@ class ToolbarActions(QWidget):
 
         self.account_btn = QToolButton()
         self.account_btn.setObjectName("AccountButton")
-        self.account_btn.setIcon(get_icon("user", COLORS["text"]))
-        self.account_btn.setIconSize(QSize(18, 18))
-        self.account_btn.setToolTip("Account")
+        self.account_btn.setIconSize(QSize(24, 24))
         self.account_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 
-        menu = QMenu(self.account_btn)
-        sign_in = menu.addAction("Sign in (backend ke baad)")
-        sign_in.setEnabled(False)
-        menu.addSeparator()
-        menu.addAction("Settings", self.settings_clicked.emit)
+        menu = ProfileMenu(self.account_btn)
+        menu.settings_requested.connect(self.settings_clicked.emit)
+        menu.edited.connect(self._refresh_profile)
         self.account_btn.setMenu(menu)
+        self._refresh_profile()
 
         layout.addWidget(self.star_btn)
         layout.addWidget(self.downloads_btn)
         layout.addSpacing(6)
         layout.addWidget(self.account_btn)
+
+    def _refresh_profile(self) -> None:
+        me = profiles.current_profile()
+        self.account_btn.setIcon(avatar_icon(me["name"], me["color"]))
+        self.account_btn.setToolTip(f"Profile: {me['name']}")
+        self.profile_edited.emit()
 
     def _make_button(self, icon_name: str, tooltip: str, checkable: bool = False) -> QToolButton:
         btn = QToolButton()

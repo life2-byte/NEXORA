@@ -458,3 +458,172 @@ QScrollBar::handle:vertical:hover {
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0;
 }
+/* ---------- No-AI badge, sidebar separator ---------- */
+QLabel#NoAiBadge {
+    color: @accent@;
+    background-color: @accent_soft@;
+    border: 1px solid @accent@;
+    border-radius: 10px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QFrame#SidebarSep {
+    background-color: rgba(255, 255, 255, 28);
+    border: none;
+}
+
+/* ---------- History ---------- */
+QFrame#HistoryRow {
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+}
+
+QFrame#HistoryRow:hover {
+    background-color: @hover_soft@;
+}
+
+QLabel#HistoryTitle {
+    color: @text@;
+    background: transparent;
+    font-size: 14px;
+}
+
+QLabel#HistoryUrl, QLabel#HistoryTime {
+    color: @muted@;
+    background: transparent;
+    font-size: 12px;
+}
+
+QLabel#DayHeader {
+    color: @text2@;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 12px;
+}
+
+QToolButton#RowDelete {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+}
+
+QToolButton#RowDelete:hover {
+    background-color: @pressed@;
+}
+/* ---------- Text boxes aur dialogs ---------- */
+QPlainTextEdit#SettingsText {
+    background-color: @bg@;
+    color: @text@;
+    border: 1px solid @border@;
+    border-radius: 8px;
+    padding: 6px 10px;
+    selection-background-color: @accent@;
+}
+
+QPlainTextEdit#SettingsText:focus {
+    border: 1px solid @accent@;
+}
+
+QDialog, QMessageBox {
+    background-color: @panel@;
+}
+
+QMessageBox QLabel {
+    color: @text@;
+}
+
+QDialogButtonBox QPushButton, QMessageBox QPushButton {
+    background-color: @hover@;
+    color: @text2@;
+    border: 1px solid @border@;
+    border-radius: 8px;
+    padding: 6px 16px;
+    min-width: 70px;
+}
+
+QDialogButtonBox QPushButton:hover, QMessageBox QPushButton:hover {
+    border: 1px solid @accent@;
+    color: @text@;
+}
+/* ---------- Permission bar ---------- */
+QWidget#PermissionBar {
+    background-color: @strip@;
+    border-bottom: 1px solid @border@;
+}
+
+QLabel#PermissionText {
+    color: @text@;
+    background: transparent;
+}
+
+QPushButton#PermAllow {
+    background-color: @accent@;
+    color: @bg@;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 16px;
+    font-weight: 600;
+}
+
+QPushButton#PermBlock {
+    background-color: @hover@;
+    color: @text2@;
+    border: 1px solid @border@;
+    border-radius: 8px;
+    padding: 5px 16px;
+}
+
+QPushButton#PermBlock:hover {
+    border: 1px solid @accent@;
+    color: @text@;
+}
+
+QListWidget {
+    background-color: @bg@;
+    color: @text@;
+    border: 1px solid @border@;
+    border-radius: 8px;
+    padding: 4px;
+    outline: none;
+}
+
+QListWidget::item {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+QListWidget::item:selected {
+    background-color: @accent_soft@;
+    color: @text@;
+}
+/* ---------- Downloads popup ---------- */
+QFrame#DownloadsPopup {
+    background-color: @panel@;
+    border: 1px solid @border_hover@;
+    border-radius: 12px;
+}
+
+QLabel#PopupTitle {
+    color: @text@;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+}
+
+QPushButton#LinkButton {
+    background: transparent;
+    color: @accent@;
+    border: none;
+    padding: 2px 6px;
+}
+
+QPushButton#LinkButton:hover {
+    color: @text@;
+}
